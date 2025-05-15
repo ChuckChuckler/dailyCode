@@ -27,6 +27,7 @@ let projectsColl = dailycodeDB.collection("projects");
 const upload = multer({storage: multer.memoryStorage()});
 
 let globalUsername;
+let globalPfp;
 
 app.post("/signup", async (req, res)=>{
     let user = req.body.user;
@@ -65,12 +66,18 @@ app.get("/getUser", (req, res)=>{
     res.send({username:globalUsername});
 });
 
+app.get("/getPfp", (req, res)=>{
+    res.set("Content-Type", globalPfp[1]);
+    res.send(globalPfp[0]);
+})
+
 app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
     let { dispName, bio } = req.body;
     let pfpFile = req.file;
     let { buffer, mimetype, originalname} = pfpFile;
 
     try{
+        globalPfp = [buffer, mimetype, originalname];
         usersColl.updateOne({username:globalUsername},
             {$set:{
                 displayName: dispName,
