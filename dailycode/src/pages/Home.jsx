@@ -7,9 +7,9 @@ export default function Home(){
     const [pfp, setPfp] = useState(null);
 
     window.onload = function(){
-        axios.get("/getUser")
+        axios.get("/getUserInfo")
         .then((response)=>{
-            setDisplayName(response.data.username);
+            setDisplayName(response.data.displayName);
         })
         .catch((e)=>{
             console.log(e);
@@ -20,7 +20,9 @@ export default function Home(){
 
     return(
         <>
-            <img src={pfp} className="w-[100px] h-[100px] rounded-full"></img>
+            <img src={pfp} className="w-[100px] h-[100px] rounded-full" onClick={function(){
+                window.location.href = "/user-profile";
+            }}></img>
             <h1>Good to see you, {displayname}!</h1>
         </>
     )

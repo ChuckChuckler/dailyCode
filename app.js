@@ -28,6 +28,7 @@ const upload = multer({storage: multer.memoryStorage()});
 
 let globalUsername;
 let globalPfp;
+let globalDisplayName;
 
 app.post("/signup", async (req, res)=>{
     let user = req.body.user;
@@ -63,6 +64,7 @@ app.post("/login", async (req, res)=>{
             if(finding){
                 globalUsername = user;
                 globalPfp = [finding.pfpData.buffer, finding.pfpMimeType];
+                globalDisplayName = finding.displayName;
                 res.send({msg:"Successfully logged in! Redirecting..."});
             }else{
                 res.send({msg:"Incorrect password!"});
@@ -75,14 +77,19 @@ app.post("/login", async (req, res)=>{
     }
 });
 
-app.get("/getUser", (req, res)=>{
-    res.send({username:globalUsername});
-});
-
 app.get("/getPfp", (req, res)=>{
     res.set("Content-Type", globalPfp[1]);
     res.send(globalPfp[0]);
-})
+});
+
+app.get("/getUserInfo", async (req, res)=>{
+    let userInfo = await usersColl.findOne({username:globalUsername});
+    res.send({
+        displayName:globalDisplayName,
+        username:globalUsername,
+        bio:userInfo.userBio
+    });
+});
 
 app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
     let { dispName, bio } = req.body;
@@ -99,6 +106,7 @@ app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
                 userBio:bio
             }}
         )
+        globalDisplayName = dispName;
         res.send({msg:"yipppee!!!"});
     }catch(e){
         res.send({msg:e});
