@@ -54,11 +54,24 @@ app.post("/signup", async (req, res)=>{
 app.post("/login", async (req, res)=>{
     let user = req.body.user;
     let pass = req.body.pass;
+    let hash = crypto.createHash("sha256");
 
     try{
         let finding = await usersColl.findOne({username: user});
+        if(finding){
+            finding = await usersColl.findOne({username:user, password:hash.update(pass).digest("hex")});
+            if(finding){
+                globalUsername = user;
+                globalPfp = [finding.pfpData.buffer, finding.pfpMimeType];
+                res.send({msg:"Successfully logged in! Redirecting..."});
+            }else{
+                res.send({msg:"Incorrect password!"});
+            }
+        }else{
+            res.send({msg:"We couldn't find this account. Double check your username?"})
+        }
     }catch(e){
-        console.log(e);
+        res.send({msg:e});
     }
 });
 
@@ -74,16 +87,15 @@ app.get("/getPfp", (req, res)=>{
 app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
     let { dispName, bio } = req.body;
     let pfpFile = req.file;
-    let { buffer, mimetype, originalname} = pfpFile;
+    let { buffer, mimetype } = pfpFile;
 
     try{
-        globalPfp = [buffer, mimetype, originalname];
+        globalPfp = [buffer, mimetype];
         usersColl.updateOne({username:globalUsername},
             {$set:{
                 displayName: dispName,
                 pfpData: buffer,
                 pfpMimeType: mimetype,
-                pfpName: originalname,
                 userBio:bio
             }}
         )

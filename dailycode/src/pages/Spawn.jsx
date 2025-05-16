@@ -87,7 +87,7 @@ function SignUp({displayState}){
               sleep(3000).then(()=>{
                 clearInterval(loadInterval);
                 window.location.href = "/create-user";
-              })
+              });
             }
           })
           .catch((e)=>{
@@ -101,19 +101,58 @@ function SignUp({displayState}){
 }
 
 function LogIn({displayState}){
+  const [errorMsg, writeError] = useState("");
+
+  let index = 0;
+  
+  function loading(){
+    let coolPuncts = [".", "..", "..."];
+    if(index==3){
+      index=0;
+    }
+    writeError("Successfully logged in! Redirecting" + coolPuncts[index]);
+    index+=1;
+  }
+
   return(
     <div className={`${displayState}`}>
       <h3>Log In</h3>
       <br></br>
       <label>Username</label>
-      <input name='loginUser' id='loginUser' autoComplete='off'></input>
+      <input name='userLogin' id='userLogin' autoComplete='off'></input>
       <br></br>
       <label>Password</label>
-      <input name='loginPass' id='loginPass' autoComplete='off'></input>
+      <input name='passLogin' id='passLogin' autoComplete='off'></input>
+      <br></br>
+      <h5 id="errorMsg">{errorMsg}</h5>
       <br></br>
       <br></br>
-      <br></br>
-      <button>Log In</button>
+      <button onClick={function(){
+        let username = document.getElementById("userLogin").value;
+        let password = document.getElementById("passLogin").value;
+
+        if(username.length < 3 || username.length > 30){
+          writeError("Username should be between 3-30 characters long!");
+        }else if(password.length < 5){
+          writeError("Password should be at least 5 characters long!");
+        }else{
+          axios.post("/login", {user:username, pass:password})
+          .then((response)=>{
+            if(response.data.msg == "Successfully logged in! Redirecting..."){
+              let loadInterval = setInterval(loading, 250);
+              sleep(3000).then(()=>{
+                clearInterval(loadInterval);
+                window.location.href = "/home";
+              });
+            }else{
+              writeError(response.data.msg);
+            }
+          })
+          .catch((e)=>{
+            writeError(e);
+          });
+        }
+      }}>Log In</button>
     </div>
   )
 }
