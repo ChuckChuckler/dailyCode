@@ -17,7 +17,7 @@ export default function UserCreation(){
     const [confirmationTxt, write] = useState("");
 
     window.onload = function(){
-        axios.get("/getUser")
+        axios.get("/getUserInfo")
         .then((response)=>{
             setUsername(response.data.username);
         })
