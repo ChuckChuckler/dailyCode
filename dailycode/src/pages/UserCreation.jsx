@@ -19,8 +19,6 @@ export default function UserCreation(){
     window.onload = function(){
         axios.get("/getUser")
         .then((response)=>{
-            console.log("is this even working 1 2 3");
-            console.log(response.data.username);
             setUsername(response.data.username);
         })
         .catch((e)=>{
