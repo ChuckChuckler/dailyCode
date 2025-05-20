@@ -94,18 +94,26 @@ app.get("/getUserInfo", async (req, res)=>{
 app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
     let { dispName, bio } = req.body;
     let pfpFile = req.file;
-    let { buffer, mimetype } = pfpFile;
-
     try{
-        globalPfp = [buffer, mimetype];
-        usersColl.updateOne({username:globalUsername},
-            {$set:{
-                displayName: dispName,
-                pfpData: buffer,
-                pfpMimeType: mimetype,
-                userBio:bio
-            }}
-        )
+        if(pfpFile!=null){
+            let { buffer, mimetype } = pfpFile;
+            globalPfp = [buffer, mimetype];
+            usersColl.updateOne({username:globalUsername},
+                {$set:{
+                    displayName: dispName,
+                    pfpData: buffer,
+                    pfpMimeType: mimetype,
+                    userBio:bio
+                }}
+            ); 
+        }else{
+            usersColl.updateOne({username:globalUsername},
+                {$set:{
+                    displayName: dispName,
+                    userBio:bio
+                }}
+            )
+        }
         globalDisplayName = dispName;
         res.send({msg:"yipppee!!!"});
     }catch(e){

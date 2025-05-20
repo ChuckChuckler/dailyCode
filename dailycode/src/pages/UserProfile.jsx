@@ -30,10 +30,15 @@ export default function UserProfile(){
             <br></br>
             <br></br>
             <h1>{displayName}</h1>
+            <img src={pfp} className="w-[300px] h-[300px] rounded-full"></img>
             <h3>{username}</h3>
             <h6>{status}</h6>
-            <img src={pfp} className="w-[300px] h-[300px] rounded-full"></img>
+            <h5>Bio</h5>
             <p>{bio}</p>
+            <br></br>
+            <button onClick={function(){
+                window.location.href = "/user-settings";
+            }}>Edit Profile</button>
             <br></br>
             <br></br>
             <h2>Projects:</h2>
