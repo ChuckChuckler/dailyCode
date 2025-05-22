@@ -35,6 +35,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       },
+      "/createProject":{
+        target: "http://localhost:3000/",
+        changeOrigin: true,
+        secure: false
+      },
+      "/populate":{
+        target: "http://localhost:3000/",
+        changeOrigin: true,
+        secure: false
+      },
     }
   }
 })

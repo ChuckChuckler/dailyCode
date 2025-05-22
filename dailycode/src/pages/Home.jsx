@@ -1,6 +1,15 @@
 import axios from "axios";
 import { useState } from "react";
 import "./Pages.css";
+import "../comps/ProjectCard.jsx";
+import ProjectCard from "../comps/ProjectCard.jsx";
+
+let globalPicFile;
+let username;
+
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 export default function Home(){
     const [displayname, setDisplayName] = useState("");
@@ -13,17 +22,51 @@ export default function Home(){
     const [nameErr, writeNameErr] = useState("");
     const [descErr, writeDescErr] = useState("");
     const [stackErr, writeStackErr] = useState("");
+    const [imgPreview, addImgPreview] = useState(null);
+    const [imgDisplay, changeImgDisplay] = useState("hidden");
+    const [imgErr, writeImgErr] = useState("");
+    const [subErr, writeSubErr] = useState("");
 
-    window.onload = function(){
-        axios.get("/getUserInfo")
+    window.onload = async function(){
+        await axios.get("/getUserInfo")
         .then((response)=>{
             setDisplayName(response.data.displayName);
+            console.log(response.data.username);
+            username = response.data.username;
         })
         .catch((e)=>{
             console.log(e);
         })
 
         setPfp("/getPfp");
+
+        axios.post("/populate")
+        .then((response)=>{
+            let collDict = response.data;
+            for(let i = 0; i < Object.keys(collDict).length; i++){
+                let tempHolder = collDict[Object.keys(collDict)[i]];
+                if(tempHolder.creator == username){
+                    console.log("do smth special here");
+                    displayCreateBtn("hidden");
+                }else{
+                    console.log(tempHolder);
+                }
+            }
+        })
+        .catch((e)=>{
+            console.log(e);
+        });
+    }
+
+    let index = 0;
+    
+    function loading(){
+        let coolPuncts = [".", "..", "..."];
+        if(index==3){
+            index=0;
+        }
+        writeSubErr("Project created successfully! Loading" + coolPuncts[index]);
+        index+=1;
     }
 
     return(
@@ -38,11 +81,12 @@ export default function Home(){
             <h2>Today's Prompt:</h2>
             <h1>PROMPT PLACEHOLDER</h1>
             <br></br>
+            <ProjectCard name="skibiditoilet" preview="https://i.pinimg.com/736x/2e/09/15/2e091503e5c6e31f6499e95429b92b83.jpg"></ProjectCard>
+            <br></br>
             <button onClick={function(){
                 displayProjectDiv("block");
                 displayCreateBtn("hidden");
             }} className={`${createBtn}`}>Create Project</button>
-            <br></br>
             <div className={`${projectDiv}`}>
                 <h2>Create Project!</h2>
                 <br></br>
@@ -52,20 +96,38 @@ export default function Home(){
                 <br></br>
                 <p>{nameErr}</p>
                 <br></br>
+                <label>Project Photo</label>
                 <br></br>
+                <input type="file" accept="image/*" id="pic" onChange={function(){
+                let imgInput = document.getElementById("pic");
+                let imgHolder = new Image();
+                let objUrl = URL.createObjectURL(imgInput.files[0]);
+
+                imgHolder.onload = function(){
+                    writeImgErr("");
+                    addImgPreview(objUrl);
+                    changeImgDisplay("block");
+                    globalPicFile = imgInput.files[0];
+                }
+                
+                imgHolder.src = objUrl;
+            }}></input>
+                <br></br>
+                 <img className={`${imgDisplay} w-[300px] h-[300px] object-cover object-center`} src={imgPreview}></img>
+                 <br></br>
+                 <p>{imgErr}</p>
+                 <br></br>
                 <label>Project Description</label>
                 <br></br>
                 <textarea id="desc" placeholder="What does your project do? Why did you make it? What processes did you go through?"></textarea>
                 <br></br>
                 <p>{descErr}</p>
                 <br></br>
-                <br></br>
                 <label>Tech Stack</label>
                 <br></br>
                 <textarea id="stack" placeholder="Languages? Libraries? Frameworks? Separate each one with a comma!"></textarea>
                 <br></br>
                 <p>{stackErr}</p>
-                <br></br>
                 <br></br>
                 <label>Github Repo</label>
                 <br></br>
@@ -89,7 +151,6 @@ export default function Home(){
                 }} placeholder="Add a link to your repository..."></input>
                 <br></br>
                 <p>{gitErr}</p>
-                <br></br>
                 <br></br>
                 <label>Demo!</label>
                 <br></br>
@@ -127,6 +188,13 @@ export default function Home(){
                         fullyFilled = true;
                     }
 
+                    if(document.getElementById("pic").value == null){
+                        writeImgErr("Add a preview image!");
+                        fullyFilled = false;
+                    }else{
+                        writeImgErr("");
+                    }
+
                     if(document.getElementById("desc").value == ""){
                         writeDescErr("Write a description for your project!");
                         fullyFilled = false;
@@ -156,10 +224,37 @@ export default function Home(){
                     }
                     
                     if(fullyFilled){
-                        
-                    }
+                        let projectData = new FormData();
+                        projectData.append("name", document.getElementById("name").value);
+                        projectData.append("preview", globalPicFile);
+                        projectData.append("desc", document.getElementById("desc").value);
+                        projectData.append("stack", document.getElementById("stack").value);
+                        projectData.append("repo", document.getElementById("repo").value);
+                        projectData.append("demo", document.getElementById("demo").value);
 
+                        axios.post("/createProject", projectData, {
+                            headers:{
+                                "Content-Type":"multipart/form-data"
+                            }
+                        })
+                        .then((response)=>{
+                            if(response.data == "success"){
+                                let loadInterval = setInterval(loading, 250);
+                                sleep(3000).then(()=>{
+                                    clearInterval(loadInterval);
+                                    location.reload();
+                                })
+                            }else{
+                                writeSubErr(response.data);
+                            }
+                        })
+                        .catch((e)=>{
+                            writeSubErr(e);
+                        });
+                    }
                 }}>Create!</button>
+                <br></br>
+                <p>{subErr}</p>
             </div>
         </>
     )

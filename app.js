@@ -1,5 +1,5 @@
 import express, { response } from "express";
-import { MongoClient } from "mongodb";
+import { MongoClient, Binary} from "mongodb";
 import bodyParser from "body-parser";
 import cors from "cors";
 import crypto from "crypto";
@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 
 //setup mongo
-const uri = "uri";
+const uri = "placeholder";
 const client  = new MongoClient(uri);
 client.connect();
 let dailycodeDB = client.db("dailyCodeDB");
@@ -120,6 +120,55 @@ app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
         res.send({msg:e});
     }
 });
+
+app.post("/createProject", upload.single("preview"), async (req,res)=>{
+    let { name, desc, stack, repo, demo} = req.body;
+    let previewFile = req.file;
+
+    try{
+        let { buffer, mimetype } = previewFile;
+        projectsColl.insertOne({
+            creator:globalUsername,
+            creationDate: new Date().toLocaleDateString(),
+            name: name,
+            previewData: buffer,
+            previewMimeType: mimetype,
+            desc: desc,
+            stack: stack,
+            repo: repo,
+            demo: demo,
+            comments: []
+        });
+
+        usersColl.updateOne({username:globalUsername},
+            {$push:{
+                projects:{
+                    $each: [name],
+                    $position: 0
+                }
+            }}
+        );
+
+        res.send("success");
+    }catch(e){
+        res.send(e);
+    }
+})
+
+app.post("/populate", async (req, res)=>{
+    let dateToday = new Date().toLocaleDateString();
+    let coll = await projectsColl.find({creationDate:dateToday}).toArray();
+    let collDict = {};
+    for(let i = 0; i < coll.length; i++){
+        let tempDict = {};
+        tempDict["name"] = coll[i].name;
+        tempDict["creator"] = coll[i].creator;
+        let base64 = coll[i].previewData.buffer.toString("base64");
+        tempDict["preview"] = `data:${coll[i].previewMimeType};base64,${base64}`;
+        collDict[coll[i]._id] = tempDict;
+    }
+    res.send(collDict);
+})
 
 app.listen(3000, ()=>{
     console.log("successfully listening");
