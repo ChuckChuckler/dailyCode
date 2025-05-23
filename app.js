@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 
 //setup mongo
-const uri = "placeholder";
+const uri = "uri";
 const client  = new MongoClient(uri);
 client.connect();
 let dailycodeDB = client.db("dailyCodeDB");
@@ -163,6 +163,10 @@ app.post("/populate", async (req, res)=>{
         let tempDict = {};
         tempDict["name"] = coll[i].name;
         tempDict["creator"] = coll[i].creator;
+        let targetUser = await usersColl.findOne({username: coll[i].creator});
+        let pfpBase64 = targetUser.pfpData.buffer.toString("base64");
+        let pfpMime = targetUser.pfpMimeType;
+        tempDict["creatorPfp"] = `data:${pfpMime};base64,${pfpBase64}`;
         let base64 = coll[i].previewData.buffer.toString("base64");
         tempDict["preview"] = `data:${coll[i].previewMimeType};base64,${base64}`;
         collDict[coll[i]._id] = tempDict;

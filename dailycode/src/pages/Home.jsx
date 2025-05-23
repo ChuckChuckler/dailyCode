@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Pages.css";
 import "../comps/ProjectCard.jsx";
 import ProjectCard from "../comps/ProjectCard.jsx";
@@ -14,7 +14,7 @@ function sleep(ms){
 export default function Home(){
     const [displayname, setDisplayName] = useState("");
     const [pfp, setPfp] = useState(null);
-    const [projectDiv, displayProjectDiv] = useState("hidden");
+    const [createDiv, displayCreateDiv] = useState("hidden");
     const [createBtn, displayCreateBtn] = useState("block");
     const [gitErr, writeGitErr] = useState("");
     const [demoErr, writeDemoErr] = useState("");
@@ -26,12 +26,13 @@ export default function Home(){
     const [imgDisplay, changeImgDisplay] = useState("hidden");
     const [imgErr, writeImgErr] = useState("");
     const [subErr, writeSubErr] = useState("");
+    const [projectsDiv, displayProjects] = useState("grid");
+    const [arrOfProjects, addToArr] = useState([]);
 
     window.onload = async function(){
         await axios.get("/getUserInfo")
         .then((response)=>{
             setDisplayName(response.data.displayName);
-            console.log(response.data.username);
             username = response.data.username;
         })
         .catch((e)=>{
@@ -40,22 +41,26 @@ export default function Home(){
 
         setPfp("/getPfp");
 
-        axios.post("/populate")
+        let tempArr = [];
+
+        await axios.post("/populate")
         .then((response)=>{
             let collDict = response.data;
             for(let i = 0; i < Object.keys(collDict).length; i++){
                 let tempHolder = collDict[Object.keys(collDict)[i]];
-                if(tempHolder.creator == username){
+                tempArr.push([Object.keys(collDict)[i], tempHolder.creator, tempHolder.creatorPfp, tempHolder.name, tempHolder.preview]);
+                /*if(tempHolder.creator == username){
                     console.log("do smth special here");
                     displayCreateBtn("hidden");
-                }else{
-                    console.log(tempHolder);
-                }
+                }*/
             }
         })
         .catch((e)=>{
             console.log(e);
         });
+        
+        addToArr(tempArr);
+        console.log(arrOfProjects);
     }
 
     let index = 0;
@@ -81,13 +86,17 @@ export default function Home(){
             <h2>Today's Prompt:</h2>
             <h1>PROMPT PLACEHOLDER</h1>
             <br></br>
-            <ProjectCard name="skibiditoilet" preview="https://i.pinimg.com/736x/2e/09/15/2e091503e5c6e31f6499e95429b92b83.jpg"></ProjectCard>
+            <div className={`${projectsDiv} grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[10px] w-[95%] h-[80vh] overflow-y-auto auto-rows-[375px]`}>
+                {arrOfProjects.map((data, i)=>(
+                    <ProjectCard key={data[0]} id={data[0]} creator={data[1]} creatorPfp={data[2]} name={data[3]} preview={data[4]}></ProjectCard>
+                ))}
+            </div>
             <br></br>
             <button onClick={function(){
-                displayProjectDiv("block");
+                displayCreateDiv("block");
                 displayCreateBtn("hidden");
             }} className={`${createBtn}`}>Create Project</button>
-            <div className={`${projectDiv}`}>
+            <div className={`${createDiv}`}>
                 <h2>Create Project!</h2>
                 <br></br>
                 <label>Project Name</label>
