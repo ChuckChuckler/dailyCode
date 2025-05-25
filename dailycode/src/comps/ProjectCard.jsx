@@ -1,7 +1,10 @@
 import { useState } from "react";
 import "../pages/Pages.css";
+import axios from "axios";
 
-export default function ProjectCard({ creator, creatorPfp, name, preview, id }){
+export default function ProjectCard({ creator, creatorPfp, name, preview, id, votes }){
+    const [acVotes, updateVotes] = useState(votes);
+    
     return(
         <div className="bg-[#d4d4d4] w-[300px]" onClick={function(){
             console.log({id});
@@ -17,10 +20,23 @@ export default function ProjectCard({ creator, creatorPfp, name, preview, id }){
             <br></br>
             <div className="flex justify-around">
                 <button onClick={function(){
-                    console.log({id});
+                    axios.post("/updateVotes", {id: id, votes:acVotes, status: "upvote"})
+                    .then((response)=>{
+                        updateVotes(response.data);
+                    })
+                    .catch((e)=>{
+                        console.log(e);
+                    });
                 }}>Upvote</button>
+                <h2 id="votes">{acVotes}</h2>
                 <button onClick={function(){
-                    console.log({id});
+                    axios.post("/updateVotes", {id: id, votes:acVotes, status: "downvote"})
+                    .then((response)=>{
+                        updateVotes(response.data);
+                    })
+                    .catch((e)=>{
+                        console.log(e);
+                    });
                 }}>Downvote</button>
             </div>
             <br></br>

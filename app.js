@@ -1,5 +1,5 @@
 import express, { response } from "express";
-import { MongoClient, Binary} from "mongodb";
+import { MongoClient, Binary, BSON, ObjectId} from "mongodb";
 import bodyParser from "body-parser";
 import cors from "cors";
 import crypto from "crypto";
@@ -137,6 +137,7 @@ app.post("/createProject", upload.single("preview"), async (req,res)=>{
             stack: stack,
             repo: repo,
             demo: demo,
+            votes: [0, [""], ""],
             comments: []
         });
 
@@ -157,7 +158,12 @@ app.post("/createProject", upload.single("preview"), async (req,res)=>{
 
 app.post("/populate", async (req, res)=>{
     let dateToday = new Date().toLocaleDateString();
+    //let coll = await projectsColl.find({creationDate:dateToday}).sort({votes:-1}).toArray();
     let coll = await projectsColl.find({creationDate:dateToday}).toArray();
+    /*let coll = await projectsColl.aggregate([
+        { $addFields: { votes: {$arrayElemAt: ["$votes", 0]}}},
+        { $sort: {votes: -1}}
+    ]).toArray();*/
     let collDict = {};
     for(let i = 0; i < coll.length; i++){
         let tempDict = {};
@@ -169,10 +175,57 @@ app.post("/populate", async (req, res)=>{
         tempDict["creatorPfp"] = `data:${pfpMime};base64,${pfpBase64}`;
         let base64 = coll[i].previewData.buffer.toString("base64");
         tempDict["preview"] = `data:${coll[i].previewMimeType};base64,${base64}`;
+        tempDict["votes"] = coll[i].votes[0];
         collDict[coll[i]._id] = tempDict;
     }
+
     res.send(collDict);
-})
+});
+
+app.post("/updateVotes", async (req, res)=>{
+    let givenId = req.body.id;
+    let prjctId = ObjectId.createFromHexString(givenId);
+    let newVotes = req.body.votes;
+    let voteStatus = req.body.status;
+
+    let temp = await projectsColl.findOne({_id:prjctId});
+
+    if(!temp.votes[1].includes(globalUsername)){
+        if(voteStatus == "upvote"){
+            newVotes+=1;
+        }else{
+            newVotes-=1;
+        }
+    }else{
+        if(temp.votes[2] != voteStatus){
+            if(temp.votes[2] == "upvote" && voteStatus == "downvote"){
+                newVotes-=2;
+            }else if(temp.votes[2] == "downvote" && voteStatus == "upvote"){
+                newVotes+=2;
+            }
+            projectsColl.updateOne({_id: prjctId},
+                {$set:{
+                    votes: [newVotes, [...temp.votes[1], globalUsername], voteStatus]
+                }}
+            );  
+        }else{
+            if(temp.votes[2] == "upvote" && voteStatus == "upvote"){
+                newVotes-=1;
+            }else if(temp.votes[2] == "downvote" && voteStatus == "downvote"){
+                newVotes-=1;
+            }
+            let newArr = temp.votes[1].splice(temp.votes[1].indexOf(globalUsername));
+            console.log(newArr);
+            projectsColl.updateOne({_id: prjctId},
+                {$set:{
+                    votes: [newVotes, newArr, voteStatus]
+                }}
+            );  
+        }
+    } 
+
+    res.send(newVotes);
+});
 
 app.listen(3000, ()=>{
     console.log("successfully listening");

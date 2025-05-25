@@ -48,7 +48,9 @@ export default function Home(){
             let collDict = response.data;
             for(let i = 0; i < Object.keys(collDict).length; i++){
                 let tempHolder = collDict[Object.keys(collDict)[i]];
-                tempArr.push([Object.keys(collDict)[i], tempHolder.creator, tempHolder.creatorPfp, tempHolder.name, tempHolder.preview]);
+                console.log(collDict);
+                console.log(tempHolder.votes);
+                tempArr.push([Object.keys(collDict)[i], tempHolder.creator, tempHolder.creatorPfp, tempHolder.name, tempHolder.preview, tempHolder.votes]);
                 /*if(tempHolder.creator == username){
                     console.log("do smth special here");
                     displayCreateBtn("hidden");
@@ -60,7 +62,6 @@ export default function Home(){
         });
         
         addToArr(tempArr);
-        console.log(arrOfProjects);
     }
 
     let index = 0;
@@ -88,7 +89,7 @@ export default function Home(){
             <br></br>
             <div className={`${projectsDiv} grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[10px] w-[95%] h-[80vh] overflow-y-auto auto-rows-[375px]`}>
                 {arrOfProjects.map((data, i)=>(
-                    <ProjectCard key={data[0]} id={data[0]} creator={data[1]} creatorPfp={data[2]} name={data[3]} preview={data[4]}></ProjectCard>
+                    <ProjectCard key={data[0]} id={data[0]} creator={data[1]} creatorPfp={data[2]} name={data[3]} preview={data[4]} votes={data[5]}></ProjectCard>
                 ))}
             </div>
             <br></br>
