@@ -28,42 +28,49 @@ export default function Home(){
     const [subErr, writeSubErr] = useState("");
     const [projectsDiv, displayProjects] = useState("grid");
     const [arrOfProjects, addToArr] = useState([]);
+    
+    useEffect(()=>{
+        const setupPage = async () => {
+            await axios.get("/getUserInfo")
+            .then((response)=>{
+                setDisplayName(response.data.displayName);
+                username = response.data.username;
+            })
+            .catch((e)=>{
+                console.log(e);
+            })
 
-    window.onload = async function(){
-        await axios.get("/getUserInfo")
-        .then((response)=>{
-            setDisplayName(response.data.displayName);
-            username = response.data.username;
-        })
-        .catch((e)=>{
-            console.log(e);
-        })
+            setPfp("/getPfp");
 
-        setPfp("/getPfp");
+            let tempArr = [];
 
-        let tempArr = [];
+            await axios.post("/populate")
+            .then((response)=>{
+                let collDict = response.data;
+                for(let i = 0; i < Object.keys(collDict).length; i++){
+                    let tempHolder = collDict[Object.keys(collDict)[i]];
+                    tempArr.push([Object.keys(collDict)[i], tempHolder.creator, tempHolder.creatorPfp, tempHolder.name, tempHolder.preview, tempHolder.votes, tempHolder.userVoteStatus]);
+                    if(tempHolder.creator == username){
+                        displayCreateBtn("hidden");
+                    }
+                }
+            })
+            .catch((e)=>{
+                console.log(e);
+            });
+            
+            addToArr(tempArr);
+        };
 
-        await axios.post("/populate")
-        .then((response)=>{
-            let collDict = response.data;
-            for(let i = 0; i < Object.keys(collDict).length; i++){
-                let tempHolder = collDict[Object.keys(collDict)[i]];
-                console.log(collDict);
-                console.log(tempHolder.votes);
-                tempArr.push([Object.keys(collDict)[i], tempHolder.creator, tempHolder.creatorPfp, tempHolder.name, tempHolder.preview, tempHolder.votes]);
-                /*if(tempHolder.creator == username){
-                    console.log("do smth special here");
-                    displayCreateBtn("hidden");
-                }*/
-            }
-        })
-        .catch((e)=>{
-            console.log(e);
-        });
-        
-        addToArr(tempArr);
-    }
+        if(document.readyState == "complete"){
+            setupPage();
+        }else{
+            window.addEventListener("load", setupPage);
+        }
 
+        return()=>window.removeEventListener("load", setupPage);
+    }, []);
+    
     let index = 0;
     
     function loading(){
@@ -89,7 +96,7 @@ export default function Home(){
             <br></br>
             <div className={`${projectsDiv} grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[10px] w-[95%] h-[80vh] overflow-y-auto auto-rows-[375px]`}>
                 {arrOfProjects.map((data, i)=>(
-                    <ProjectCard key={data[0]} id={data[0]} creator={data[1]} creatorPfp={data[2]} name={data[3]} preview={data[4]} votes={data[5]}></ProjectCard>
+                    <ProjectCard key={data[0]} id={data[0]} creator={data[1]} creatorPfp={data[2]} name={data[3]} preview={data[4]} votes={data[5]} voteStatus={data[6]}></ProjectCard>
                 ))}
             </div>
             <br></br>

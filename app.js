@@ -137,7 +137,7 @@ app.post("/createProject", upload.single("preview"), async (req,res)=>{
             stack: stack,
             repo: repo,
             demo: demo,
-            votes: [0, [""], ""],
+            votes: [0, [], []],
             comments: []
         });
 
@@ -176,6 +176,11 @@ app.post("/populate", async (req, res)=>{
         let base64 = coll[i].previewData.buffer.toString("base64");
         tempDict["preview"] = `data:${coll[i].previewMimeType};base64,${base64}`;
         tempDict["votes"] = coll[i].votes[0];
+        if(coll[i].votes[1].includes(globalUsername)){
+            tempDict["userVoteStatus"] = coll[i].votes[2][coll[i].votes[1].indexOf(globalUsername)];
+        }else{
+            tempDict["userVoteStatus"] = "none";
+        }
         collDict[coll[i]._id] = tempDict;
     }
 
@@ -185,46 +190,66 @@ app.post("/populate", async (req, res)=>{
 app.post("/updateVotes", async (req, res)=>{
     let givenId = req.body.id;
     let prjctId = ObjectId.createFromHexString(givenId);
-    let newVotes = req.body.votes;
     let voteStatus = req.body.status;
 
-    let temp = await projectsColl.findOne({_id:prjctId});
+    let color;
 
-    if(!temp.votes[1].includes(globalUsername)){
-        if(voteStatus == "upvote"){
-            newVotes+=1;
+    let temp = await projectsColl.findOne({_id:prjctId});
+    let crrntVotes = temp.votes[0];
+
+    if(temp.votes[1].includes(globalUsername)){
+        if(temp.votes[2][temp.votes[1].indexOf(globalUsername)] == voteStatus){
+            if(voteStatus == "upvote"){
+                crrntVotes-=1;
+            }else{
+                crrntVotes+=1;
+            }
+
+            color="white";
+
+            let tempVotersArr = temp.votes[1].filter(i => i != globalUsername);
+            let tempStatusArr = temp.votes[2].filter((_, i) => i != temp.votes[1].indexOf(globalUsername));
+
+            projectsColl.updateOne({_id: prjctId},
+                {$set:{
+                    votes: [crrntVotes, tempVotersArr, tempStatusArr]
+                }}
+            );
         }else{
-            newVotes-=1;
+            if(voteStatus == "upvote" && temp.votes[2][temp.votes[1].indexOf(globalUsername)] == "downvote"){
+                crrntVotes+=2;
+            }else if(voteStatus == "downvote" && temp.votes[2][temp.votes[1].indexOf(globalUsername)] == "upvote"){
+                crrntVotes-=2;
+            }
+
+            color="[#979899]";
+
+            let tempVotesArr = temp.votes[2];
+            tempVotesArr[temp.votes[1].indexOf(globalUsername)] = voteStatus;
+
+            projectsColl.updateOne({_id: prjctId},
+                {$set:{
+                    votes: [crrntVotes, temp.votes[1], tempVotesArr]
+                }}
+            );
         }
     }else{
-        if(temp.votes[2] != voteStatus){
-            if(temp.votes[2] == "upvote" && voteStatus == "downvote"){
-                newVotes-=2;
-            }else if(temp.votes[2] == "downvote" && voteStatus == "upvote"){
-                newVotes+=2;
-            }
-            projectsColl.updateOne({_id: prjctId},
-                {$set:{
-                    votes: [newVotes, [...temp.votes[1], globalUsername], voteStatus]
-                }}
-            );  
+        if(voteStatus == "upvote"){
+            crrntVotes+=1;
         }else{
-            if(temp.votes[2] == "upvote" && voteStatus == "upvote"){
-                newVotes-=1;
-            }else if(temp.votes[2] == "downvote" && voteStatus == "downvote"){
-                newVotes-=1;
-            }
-            let newArr = temp.votes[1].splice(temp.votes[1].indexOf(globalUsername));
-            console.log(newArr);
-            projectsColl.updateOne({_id: prjctId},
-                {$set:{
-                    votes: [newVotes, newArr, voteStatus]
-                }}
-            );  
+            crrntVotes-=1;
         }
-    } 
 
-    res.send(newVotes);
+        color="[#979899]";
+
+        projectsColl.updateOne({_id: prjctId},
+            {$set:{
+                votes: [crrntVotes, [...temp.votes[1], globalUsername], [...temp.votes[2], voteStatus]]
+            }}
+        );
+    }
+
+    res.send({newVotes: crrntVotes, color:color});
 });
 
 app.listen(3000, ()=>{
