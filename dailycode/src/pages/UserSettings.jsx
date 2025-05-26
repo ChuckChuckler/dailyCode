@@ -25,7 +25,7 @@ export default function UserSettings(){
                     navigate("/");
                 }else{
                     setDisplayName(response.data.displayName);
-                    setPfp("/getPfp");
+                    setPfp(response.data.pfp);
                     setBio(response.data.bio);
                     /*setUsername(response.data.username);*/
                 }

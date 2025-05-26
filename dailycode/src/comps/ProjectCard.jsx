@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../pages/Pages.css";
 import axios from "axios";
+import { useNavigate } from "react-router";
 
 export default function ProjectCard({ creator, creatorPfp, name, preview, id, votes, voteStatus, ownProject }){
     const [acVotes, updateVotes] = useState(votes);
@@ -8,6 +9,8 @@ export default function ProjectCard({ creator, creatorPfp, name, preview, id, vo
     const [downvoteColor, changeDownvoteColor] = useState("white");
     const [votingDisplay, displayVotingInterface] = useState("block");
     const [votesDisplay, displayOwnProject] = useState("hidden");
+
+    const navigation = useNavigate();
 
     useEffect(()=>{
         const setAll = () => {
@@ -47,8 +50,8 @@ export default function ProjectCard({ creator, creatorPfp, name, preview, id, vo
             <div className="m-auto w-[250px]">
                 <h1>{name}</h1>
                 <img src={preview} className="w-[250px] h-[250px] object-cover object-center" onClick={function(){
-            console.log({id});
-        }}></img>
+                    navigation(`/project/${id}`);
+                }}></img>
             </div>
             <br></br>
             <div className={`${votingDisplay} flex justify-around`}>

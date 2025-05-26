@@ -63,7 +63,7 @@ app.post("/login", async (req, res)=>{
             finding = await usersColl.findOne({username:user, password:hash.update(pass).digest("hex")});
             if(finding){
                 globalUsername = user;
-                globalPfp = [finding.pfpData.buffer, finding.pfpMimeType];
+                globalPfp = `data:${finding.pfpMimeType};base64,${finding.pfpData.buffer.toString("base64")}`
                 globalDisplayName = finding.displayName;
                 res.send({msg:"Successfully logged in! Redirecting..."});
             }else{
@@ -77,11 +77,6 @@ app.post("/login", async (req, res)=>{
     }
 });
 
-app.get("/getPfp", (req, res)=>{
-    res.set("Content-Type", globalPfp[1]);
-    res.send(globalPfp[0]);
-});
-
 app.get("/getUserInfo", async (req, res)=>{
     if(globalUsername != ""){
         let userInfo = await usersColl.findOne({username:globalUsername});
@@ -89,6 +84,7 @@ app.get("/getUserInfo", async (req, res)=>{
             msg:"success",
             displayName:globalDisplayName,
             username:globalUsername,
+            pfp:globalPfp,
             bio:userInfo.userBio
         });
     }else{
@@ -102,7 +98,7 @@ app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
     try{
         if(pfpFile!=null){
             let { buffer, mimetype } = pfpFile;
-            globalPfp = [buffer, mimetype];
+            globalPfp = `data:${mimetype};base64,${buffer.toString("base64")}`;
             usersColl.updateOne({username:globalUsername},
                 {$set:{
                     displayName: dispName,
@@ -264,8 +260,50 @@ app.post("/updateVotes", async (req, res)=>{
 app.post("/fetchProject", async (req, res)=>{
     let id=ObjectId.createFromHexString(req.body.id);
     let finding = await projectsColl.findOne({_id:id});
-    console.log(finding);
-    res.send("yippeee");
+    let name = finding.name;
+    let creator = finding.creator;
+    let date = finding.creationDate;
+    let previewBase64 = finding.previewData.buffer.toString("base64");
+    let previewMime = finding.previewMimeType;
+    let previewFile = `data:${previewMime};base64,${previewBase64}`;
+    let desc = finding.desc;
+    let stack = finding.stack;
+    let repo = finding.repo;
+    let demo = finding.demo;
+    let votes = finding.votes;
+    let comments = finding.comments;
+    res.send({
+        name: name,
+        creator: creator,
+        date: date,
+        previewFile: previewFile,
+        desc: desc,
+        stack: stack,
+        repo: repo, 
+        demo: demo,
+        votes: votes,
+        comments: comments
+    });
+});
+
+app.post("/comment", async (req, res)=>{
+    let id = ObjectId.createFromHexString(req.body.id);
+    let commentTxt = req.body.comment;
+    let date = new Date();
+
+    let finding = await projectsColl.findOne({_id: id});
+    let commentsArr = [...finding.comments, [date, globalUsername, globalPfp, commentTxt]];
+    await projectsColl.updateOne({_id:id}, {
+        $set:{
+            comments: commentsArr
+        }
+    });
+
+    res.send({
+        date: date,
+        username: globalUsername,
+        pfp: globalPfp
+    });
 })
 
 app.listen(3000, ()=>{

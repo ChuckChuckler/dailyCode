@@ -20,11 +20,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       },
-      "/getPfp":{
-        target: "http://localhost:3000/",
-        changeOrigin: true,
-        secure: false
-      },
       "/getUserInfo":{
         target: "http://localhost:3000/",
         changeOrigin: true,
@@ -50,6 +45,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       },
+      "/fetchProject":{
+        target: "http://localhost:3000/",
+        changeOrigin: true,
+        secure: false
+      },
+      "/comment":{
+        target: "http://localhost:3000/",
+        changeOrigin: true,
+        secure: false
+      }
     }
   }
 })

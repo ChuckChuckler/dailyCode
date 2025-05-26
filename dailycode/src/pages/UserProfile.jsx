@@ -21,7 +21,7 @@ export default function UserProfile(){
                 }else{
                     setDisplayName(response.data.displayName);
                     setUsername(response.data.username);
-                    setPfp("/getPfp");
+                    setPfp(response.data.pfp);
                     setBio(response.data.bio);
                 }
             })

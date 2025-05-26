@@ -44,7 +44,7 @@ export default function Home(){
                 }else{
                     setDisplayName(response.data.displayName);
                     username = response.data.username;
-                    setPfp("/getPfp");
+                    setPfp(response.data.pfp);
                 }
             })
             .catch((e)=>{
