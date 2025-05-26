@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import "./Pages.css";
+import Comment from "../comps/Comment";
 import { useParams, useNavigate } from "react-router";
 
 export default function Project(){
@@ -101,6 +102,11 @@ export default function Project(){
                 </div>
                 <div className="w-[48%] relative">
                     <h2>Comments</h2>
+                    <div className="overflow-auto h-[75%]">
+                        {comments.map((data, i)=>(
+                            <Comment key={i} date={data[0]} commenter={data[1]} pfp={data[2]} commentTxt={data[3]}></Comment>
+                        ))}
+                    </div>
                     <div className={`${commentBox} flex justify-between w-[70%] absolute bottom-10`}>
                         <input type="text" autoComplete="off" id="commentInput" className="border-[0.5px] w-[85%]"></input>
                         <button onClick={function(){
@@ -110,7 +116,7 @@ export default function Project(){
                                 axios.post("/comment", {id:id, comment:comment})
                                 .then((response)=>{
                                     inputElm.value = "";
-                                    console.log(response.data);
+                                    setComments(response.data.comments);
                                 })
                                 .catch((e)=>{
                                     console.log(e);

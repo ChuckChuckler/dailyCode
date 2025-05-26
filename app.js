@@ -302,7 +302,8 @@ app.post("/comment", async (req, res)=>{
     res.send({
         date: date,
         username: globalUsername,
-        pfp: globalPfp
+        pfp: globalPfp,
+        comments: commentsArr
     });
 })
 
