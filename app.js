@@ -26,7 +26,7 @@ let projectsColl = dailycodeDB.collection("projects");
 //setup multer
 const upload = multer({storage: multer.memoryStorage()});
 
-let globalUsername;
+let globalUsername = "";
 let globalPfp;
 let globalDisplayName;
 
@@ -83,12 +83,17 @@ app.get("/getPfp", (req, res)=>{
 });
 
 app.get("/getUserInfo", async (req, res)=>{
-    let userInfo = await usersColl.findOne({username:globalUsername});
-    res.send({
-        displayName:globalDisplayName,
-        username:globalUsername,
-        bio:userInfo.userBio
-    });
+    if(globalUsername != ""){
+        let userInfo = await usersColl.findOne({username:globalUsername});
+        res.send({
+            msg:"success",
+            displayName:globalDisplayName,
+            username:globalUsername,
+            bio:userInfo.userBio
+        });
+    }else{
+        res.send({msg:"home"})
+    }
 });
 
 app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
@@ -255,6 +260,13 @@ app.post("/updateVotes", async (req, res)=>{
 
     res.send({newVotes: crrntVotes, color:color});
 });
+
+app.post("/fetchProject", async (req, res)=>{
+    let id=ObjectId.createFromHexString(req.body.id);
+    let finding = await projectsColl.findOne({_id:id});
+    console.log(finding);
+    res.send("yippeee");
+})
 
 app.listen(3000, ()=>{
     console.log("successfully listening");

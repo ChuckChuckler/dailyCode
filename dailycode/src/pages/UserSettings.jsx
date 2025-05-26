@@ -21,10 +21,14 @@ export default function UserSettings(){
         const loadSelf = () => {
             axios.get("/getUserInfo")
             .then((response)=>{
-                setDisplayName(response.data.displayName);
-                setPfp("/getPfp");
-                setBio(response.data.bio);
-                /*setUsername(response.data.username);*/
+                if(response.data.msg == "home"){
+                    navigate("/");
+                }else{
+                    setDisplayName(response.data.displayName);
+                    setPfp("/getPfp");
+                    setBio(response.data.bio);
+                    /*setUsername(response.data.username);*/
+                }
             })
             .catch((e)=>{
                 console.log(e);
@@ -52,7 +56,6 @@ export default function UserSettings(){
     function save(){
         let newDisplayName = document.getElementById("displayName").value;
         let pronouns = document.getElementById("pronouns").value;
-        //pfp = globalPfpFile
         let newBio = document.getElementById("bio").value;
 
         if(newDisplayName.length == 0){

@@ -23,7 +23,11 @@ export default function UserCreation(){
         const loadPage = () => {
             axios.get("/getUserInfo")
             .then((response)=>{
-                setUsername(response.data.username);
+                if(response.data.msg == "home"){
+                    navigate("/");
+                }else{
+                    setUsername(response.data.username);
+                }
             })
             .catch((e)=>{
                 console.log(e);

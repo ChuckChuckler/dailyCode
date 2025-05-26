@@ -16,10 +16,14 @@ export default function UserProfile(){
         const loadSelf = () =>{
             axios.get("/getUserInfo")
             .then((response)=>{
-                setDisplayName(response.data.displayName);
-                setUsername(response.data.username);
-                setPfp("/getPfp");
-                setBio(response.data.bio);
+                if(response.data.msg == "home"){
+                    navigate("/");
+                }else{
+                    setDisplayName(response.data.displayName);
+                    setUsername(response.data.username);
+                    setPfp("/getPfp");
+                    setBio(response.data.bio);
+                }
             })
             .catch((e)=>{
                 console.log(e);

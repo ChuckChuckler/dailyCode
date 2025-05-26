@@ -39,14 +39,17 @@ export default function Home(){
         const setupPage = async () => {
             await axios.get("/getUserInfo")
             .then((response)=>{
-                setDisplayName(response.data.displayName);
-                username = response.data.username;
+                if(response.data.msg == "home"){
+                    navigate("/");
+                }else{
+                    setDisplayName(response.data.displayName);
+                    username = response.data.username;
+                    setPfp("/getPfp");
+                }
             })
             .catch((e)=>{
                 console.log(e);
             })
-
-            setPfp("/getPfp");
 
             let tempArr = [];
 
