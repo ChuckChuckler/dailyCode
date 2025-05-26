@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import "./Pages.css";
+import { useNavigate } from "react-router";
 
 let globalPfpFile;
 
@@ -15,6 +16,8 @@ export default function UserCreation(){
     const [imgDisplay, changeImgDisplay] = useState("hidden");
     const [buttonDisplay, changeButtonDisplay] = useState("hidden");
     const [confirmationTxt, write] = useState("");
+
+    const navigate = useNavigate();
 
     window.onload = function(){
         axios.get("/getUserInfo")
@@ -103,7 +106,7 @@ export default function UserCreation(){
                     let loadInterval = setInterval(loading, 250);
                     sleep(3000).then(()=>{
                         clearInterval(loadInterval);
-                        window.location.href = "/home";
+                        navigate("/home");
                     })
                 })
                 .catch((e)=>{

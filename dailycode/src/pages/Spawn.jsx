@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import axios from 'axios';
+import { useNavigate } from "react-router";
 
 function sleep(ms){
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export default function Spawn(){
-
   const [signupDisplay, changeSignupDisplay] = useState("hidden");
   const [loginDisplay, changeLoginDisplay] = useState("hidden");
   const [buttonDisplay, changeButtonDisplay] = useState("hidden");
   const [buttonToHide, hideButton] = useState("block");
   const [buttonText, changeButtonText] = useState("Log in");
+
+  const navigate = useNavigate();
 
   return (
     <>
@@ -46,6 +48,8 @@ export default function Spawn(){
 
 function SignUp({displayState}){
   const [errorMsg, writeError] = useState("");
+  const navigate = useNavigate();
+
   let index = 0;
 
   function loading(){
@@ -86,7 +90,7 @@ function SignUp({displayState}){
               let loadInterval = setInterval(loading, 250);
               sleep(3000).then(()=>{
                 clearInterval(loadInterval);
-                window.location.href = "/create-user";
+                navigate("/create-user");
               });
             }
           })
@@ -102,6 +106,7 @@ function SignUp({displayState}){
 
 function LogIn({displayState}){
   const [errorMsg, writeError] = useState("");
+  const navigate = useNavigate();
 
   let index = 0;
   
@@ -142,7 +147,7 @@ function LogIn({displayState}){
               let loadInterval = setInterval(loading, 250);
               sleep(3000).then(()=>{
                 clearInterval(loadInterval);
-                window.location.href = "/home";
+                navigate("/home");
               });
             }else{
               writeError(response.data.msg);

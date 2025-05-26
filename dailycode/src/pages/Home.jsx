@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import "./Pages.css";
 import "../comps/ProjectCard.jsx";
 import ProjectCard from "../comps/ProjectCard.jsx";
+import { useNavigate } from "react-router";
 
 let globalPicFile;
 let username;
@@ -31,6 +32,8 @@ export default function Home(){
     const [arrOfProjects, addToArr] = useState([]);
     const [userProject, addUserProject] = useState([]);
     const [yourProject, showYourProject] = useState("hidden");
+
+    const navigate = useNavigate();
     
     useEffect(()=>{
         const setupPage = async () => {
@@ -91,7 +94,7 @@ export default function Home(){
     return(
         <>
             <img src={pfp} className="w-[100px] h-[100px] rounded-full" onClick={function(){
-                window.location.href = "/user-profile";
+                navigate("/user-profile");
             }}></img>
             <h3>Good to see you, {displayname}!</h3>
             <br></br>

@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Pages.css";
+import { useNavigate } from "react-router";
 
 export default function UserProfile(){
     const [displayName, setDisplayName] = useState("");
@@ -9,23 +10,35 @@ export default function UserProfile(){
     const [pfp, setPfp] = useState(null);
     const [bio, setBio] = useState("");
 
-    window.onload = function(){
-        axios.get("/getUserInfo")
-        .then((response)=>{
-            setDisplayName(response.data.displayName);
-            setUsername(response.data.username);
-            setPfp("/getPfp");
-            setBio(response.data.bio);
-        })
-        .catch((e)=>{
-            console.log(e);
-        });
-    }
+    const navigate = useNavigate();
+
+    useEffect(()=>{
+        const loadSelf = () =>{
+            axios.get("/getUserInfo")
+            .then((response)=>{
+                setDisplayName(response.data.displayName);
+                setUsername(response.data.username);
+                setPfp("/getPfp");
+                setBio(response.data.bio);
+            })
+            .catch((e)=>{
+                console.log(e);
+            });
+        };
+
+        if(document.readyState == "complete"){
+            loadSelf();
+        }else{
+            window.addEventListener("load", loadSelf);
+        }
+
+        return()=>window.removeEventListener("load", loadSelf);
+    }, []);
 
     return(
         <>
             <button onClick={function(){
-                window.location.href = "/home";
+                navigate("/home");
             }}>back home</button>
             <br></br>
             <br></br>
@@ -37,7 +50,7 @@ export default function UserProfile(){
             <p>{bio}</p>
             <br></br>
             <button onClick={function(){
-                window.location.href = "/user-settings";
+                navigate("/user-settings");
             }}>Edit Profile</button>
             <br></br>
             <br></br>

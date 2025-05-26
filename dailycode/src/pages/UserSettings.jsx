@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Pages.css";
+import { useNavigate } from "react-router";
 
 let globalPfpFile;
 let unsaved = false;
@@ -14,25 +15,37 @@ export default function UserSettings(){
     const [checkDisplay, doublecheck] = useState("hidden");
     const [button, buttonDisplay] = useState("block");
 
-    window.onload = function(){
-        axios.get("/getUserInfo")
-        .then((response)=>{
-            setDisplayName(response.data.displayName);
-            setPfp("/getPfp");
-            setBio(response.data.bio);
-            /*setUsername(response.data.username);*/
-        })
-        .catch((e)=>{
-            console.log(e);
-        });
-    }
+    const navigate = useNavigate();
+
+    useEffect(()=>{
+        const loadSelf = () => {
+            axios.get("/getUserInfo")
+            .then((response)=>{
+                setDisplayName(response.data.displayName);
+                setPfp("/getPfp");
+                setBio(response.data.bio);
+                /*setUsername(response.data.username);*/
+            })
+            .catch((e)=>{
+                console.log(e);
+            });
+        };
+
+        if(document.readyState == "complete"){
+            loadSelf();
+        }else{
+            window.addEventListener("load", loadSelf);
+        }
+
+        return()=>window.removeEventListener("load", loadSelf);
+    }, []);
 
     function saveCheck(){
         if(unsaved){
            doublecheck("block");
            buttonDisplay("hidden");
         }else{
-            window.location.href = "/user-profile";
+            navigate("/user-profile");
         }
     }
 
@@ -127,11 +140,11 @@ export default function UserSettings(){
                 <h4>You have unsaved changes? Leave anyways?</h4>
                 <button onClick={function(){
                     save();
-                    window.location.href = "/user-profile";
+                    navigate("/user-profile");
                 }}>Save Changes!!</button>
                 <br></br>
                 <button onClick={function(){
-                    window.location.href = "/user-profile";
+                    navigate("/user-profile");
                 }}>Nah, leave</button>
             </div>
             <button onClick={save} className={`${button}`}>Save Changes</button>
