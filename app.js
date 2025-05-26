@@ -137,7 +137,9 @@ app.post("/createProject", upload.single("preview"), async (req,res)=>{
             stack: stack,
             repo: repo,
             demo: demo,
-            votes: [0, [], []],
+            votes: 0,
+            voters: [],
+            voteStati: [],
             comments: []
         });
 
@@ -158,12 +160,8 @@ app.post("/createProject", upload.single("preview"), async (req,res)=>{
 
 app.post("/populate", async (req, res)=>{
     let dateToday = new Date().toLocaleDateString();
-    //let coll = await projectsColl.find({creationDate:dateToday}).sort({votes:-1}).toArray();
-    let coll = await projectsColl.find({creationDate:dateToday}).toArray();
-    /*let coll = await projectsColl.aggregate([
-        { $addFields: { votes: {$arrayElemAt: ["$votes", 0]}}},
-        { $sort: {votes: -1}}
-    ]).toArray();*/
+    let coll = await projectsColl.find({creationDate:dateToday}).sort({votes: -1}).toArray();
+
     let collDict = {};
     for(let i = 0; i < coll.length; i++){
         let tempDict = {};
@@ -175,9 +173,9 @@ app.post("/populate", async (req, res)=>{
         tempDict["creatorPfp"] = `data:${pfpMime};base64,${pfpBase64}`;
         let base64 = coll[i].previewData.buffer.toString("base64");
         tempDict["preview"] = `data:${coll[i].previewMimeType};base64,${base64}`;
-        tempDict["votes"] = coll[i].votes[0];
-        if(coll[i].votes[1].includes(globalUsername)){
-            tempDict["userVoteStatus"] = coll[i].votes[2][coll[i].votes[1].indexOf(globalUsername)];
+        tempDict["votes"] = coll[i].votes;
+        if(coll[i].voters.includes(globalUsername)){
+            tempDict["userVoteStatus"] = coll[i].voteStati[coll[i].voters.indexOf(globalUsername)];
         }else{
             tempDict["userVoteStatus"] = "none";
         }
@@ -195,10 +193,10 @@ app.post("/updateVotes", async (req, res)=>{
     let color;
 
     let temp = await projectsColl.findOne({_id:prjctId});
-    let crrntVotes = temp.votes[0];
+    let crrntVotes = temp.votes;
 
-    if(temp.votes[1].includes(globalUsername)){
-        if(temp.votes[2][temp.votes[1].indexOf(globalUsername)] == voteStatus){
+    if(temp.voters.includes(globalUsername)){
+        if(temp.voteStati[temp.voters.indexOf(globalUsername)] == voteStatus){
             if(voteStatus == "upvote"){
                 crrntVotes-=1;
             }else{
@@ -207,29 +205,33 @@ app.post("/updateVotes", async (req, res)=>{
 
             color="white";
 
-            let tempVotersArr = temp.votes[1].filter(i => i != globalUsername);
-            let tempStatusArr = temp.votes[2].filter((_, i) => i != temp.votes[1].indexOf(globalUsername));
+            let tempVotersArr = temp.voters.filter(i => i != globalUsername);
+            let tempStatusArr = temp.voteStati.filter((_, i) => i != temp.voters.indexOf(globalUsername));
 
             projectsColl.updateOne({_id: prjctId},
                 {$set:{
-                    votes: [crrntVotes, tempVotersArr, tempStatusArr]
+                    votes: crrntVotes,
+                    voters: tempVotersArr,
+                    voteStati: tempStatusArr
                 }}
             );
         }else{
-            if(voteStatus == "upvote" && temp.votes[2][temp.votes[1].indexOf(globalUsername)] == "downvote"){
+            if(voteStatus == "upvote" && temp.voteStati[temp.voters.indexOf(globalUsername)] == "downvote"){
                 crrntVotes+=2;
-            }else if(voteStatus == "downvote" && temp.votes[2][temp.votes[1].indexOf(globalUsername)] == "upvote"){
+            }else if(voteStatus == "downvote" && temp.voteStati[temp.voters.indexOf(globalUsername)] == "upvote"){
                 crrntVotes-=2;
             }
 
             color="[#979899]";
 
-            let tempVotesArr = temp.votes[2];
-            tempVotesArr[temp.votes[1].indexOf(globalUsername)] = voteStatus;
+            let tempVotesArr = temp.voteStati;
+            tempVotesArr[temp.voters.indexOf(globalUsername)] = voteStatus;
 
             projectsColl.updateOne({_id: prjctId},
                 {$set:{
-                    votes: [crrntVotes, temp.votes[1], tempVotesArr]
+                    votes: crrntVotes,
+                    voters: temp.voters,
+                    voteStati: tempVotesArr
                 }}
             );
         }
@@ -244,7 +246,9 @@ app.post("/updateVotes", async (req, res)=>{
 
         projectsColl.updateOne({_id: prjctId},
             {$set:{
-                votes: [crrntVotes, [...temp.votes[1], globalUsername], [...temp.votes[2], voteStatus]]
+                votes: crrntVotes,
+                voters: [...temp.voters, globalUsername],
+                voteStati: [...temp.voteStati, voteStatus]
             }}
         );
     }
