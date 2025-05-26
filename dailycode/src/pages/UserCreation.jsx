@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Pages.css";
 import { useNavigate } from "react-router";
 
@@ -19,15 +19,25 @@ export default function UserCreation(){
 
     const navigate = useNavigate();
 
-    window.onload = function(){
-        axios.get("/getUserInfo")
-        .then((response)=>{
-            setUsername(response.data.username);
-        })
-        .catch((e)=>{
-            console.log(e);
-        });
-    }
+    useEffect(()=>{
+        const loadPage = () => {
+            axios.get("/getUserInfo")
+            .then((response)=>{
+                setUsername(response.data.username);
+            })
+            .catch((e)=>{
+                console.log(e);
+            });
+        };
+
+        if(document.readyState == "complete"){
+            loadPage();
+        }else{
+            window.addEventListener("load", loadPage);
+        }
+
+        return()=>window.removeEventListener("load", loadPage);
+    },[])
 
     let index = 0;
     
