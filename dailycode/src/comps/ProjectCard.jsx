@@ -56,7 +56,7 @@ export default function ProjectCard({ creator, creatorPfp, name, preview, id, vo
             <br></br>
             <div className={`${votingDisplay} flex justify-around`}>
                 <button className={`bg-${upvoteColor}`} onClick={function(){
-                    axios.post("/updateVotes", {id: id, votes:acVotes, status: "upvote"})
+                    axios.post("/updateVotes", {id: id, status: "upvote"})
                     .then((response)=>{
                         updateVotes(response.data.newVotes);
                         changeUpvoteColor(response.data.color);

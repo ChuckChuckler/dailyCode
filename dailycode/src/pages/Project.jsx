@@ -17,6 +17,8 @@ export default function Project(){
     const [comments, setComments] = useState([]);
     const [commentBox, displayCommentBox] = useState("block");
     const [redirectLogin, displayRdrct] = useState("hidden");
+    const [upvoteColor, changeUpvoteColor] = useState("white");
+    const [downvoteColor, changeDownvoteColor] = useState("white");
 
     const navigate = useNavigate();
 
@@ -38,6 +40,17 @@ export default function Project(){
                 setDemo(prjct.demo);
                 setVotes(prjct.votes);
                 setComments(prjct.comments);
+
+                let voteStatus = prjct.voteStatus;
+
+                if(voteStatus == "upvote"){
+                    changeUpvoteColor("[#979899]");
+                }else if(voteStatus == "downvote"){
+                    changeDownvoteColor("[#979899]");
+                }else{
+                    changeUpvoteColor("white");
+                    changeDownvoteColor("white");
+                }
             })
             .catch((e)=>{
                 console.log(e);
@@ -96,10 +109,30 @@ export default function Project(){
                     </div>
                     <br></br>
                     <br></br>
-                    <div className="flex justify-around w-[50%]">
-                        <button>Upvote</button>
+                    <div className="flex justify-around w-[50%] bg-[#d4d4d4]">
+                        <button className={`bg-${upvoteColor}`} onClick={function(){
+                            axios.post("/updateVotes", {id: id, votes:votes, status: "upvote"})
+                            .then((response)=>{
+                                setVotes(response.data.newVotes);
+                                changeUpvoteColor(response.data.color);
+                                changeDownvoteColor("white");
+                            })
+                            .catch((e)=>{
+                                console.log(e);
+                            });
+                        }}>Upvote</button>
                         <h3>{votes}</h3>
-                        <button>Downvote</button>
+                        <button className={`bg-${downvoteColor}`} onClick={function(){
+                            axios.post("/updateVotes", {id: id, status: "downvote"})
+                            .then((response)=>{
+                                setVotes(response.data.newVotes);
+                                changeDownvoteColor(response.data.color);
+                                changeUpvoteColor("white");
+                            })
+                            .catch((e)=>{
+                                console.log(e);
+                            });
+                        }}>Downvote</button>
                     </div>
                 </div>
                 <div className="w-[48%] relative">

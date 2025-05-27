@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 
 //setup mongo
-const uri = "uri";
+const uri = "";
 const client  = new MongoClient(uri);
 client.connect();
 let dailycodeDB = client.db("dailyCodeDB");
@@ -237,7 +237,7 @@ app.post("/updateVotes", async (req, res)=>{
                 {$set:{
                     votes:{
                         votes: crrntVotes,
-                        voters: temp.voters,
+                        voters: temp.votes.voters,
                         voteStati: tempVotesArr 
                     }
                 }}
@@ -256,8 +256,8 @@ app.post("/updateVotes", async (req, res)=>{
             {$set:{
                 votes:{
                     votes: crrntVotes,
-                    voters: [...temp.voters, globalUsername],
-                    voteStati: [...temp.voteStati, voteStatus]
+                    voters: [...temp.votes.voters, globalUsername],
+                    voteStati: [...temp.votes.voteStati, voteStatus]
                 }
             }}
         );
@@ -280,6 +280,7 @@ app.post("/fetchProject", async (req, res)=>{
     let repo = finding.repo;
     let demo = finding.demo;
     let votes = finding.votes.votes;
+    let voteStatus = finding.votes.voteStati[finding.votes.voters.indexOf(globalUsername)];
     let comments = finding.comments;
     res.send({
         name: name,
@@ -291,6 +292,7 @@ app.post("/fetchProject", async (req, res)=>{
         repo: repo, 
         demo: demo,
         votes: votes,
+        voteStatus: voteStatus,
         comments: comments
     });
 });
@@ -317,7 +319,10 @@ app.post("/comment", async (req, res)=>{
 })
 
 app.post("/fetchProfile", async (req, res)=>{
-
+    let username = req.body.username;
+    let finding = await usersColl.findOne({username:username});
+    console.log(finding);
+    res.send(finding);
 })
 
 app.listen(3000, ()=>{
