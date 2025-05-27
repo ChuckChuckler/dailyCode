@@ -68,16 +68,18 @@ export default function Project(){
         <>
             <button onClick={function(){
                 navigate("/home");
-            }}>Return Home</button>
+            }}>Home</button>
             <br></br>
             <hr></hr>
             <br></br>
             <div className="flex justify-around">
                 <div className="w-[48%]">
                     <h1>{name}</h1>
-                    <h2>By: {creator}</h2>
+                    <h2 onClick={function(){
+                        navigate(`/profile/${creator}`);
+                    }}>By: {creator}</h2>
                     <h3>Created: {date}</h3>
-                    <img className="w-[300px] h-[300px]" src={preview}></img>
+                    <img className="w-[300px] h-[300px] object-cover object-center" src={preview}></img>
                     <br></br>
                     <p>{desc}</p>
                     <br></br>
@@ -104,7 +106,7 @@ export default function Project(){
                     <h2>Comments</h2>
                     <div className="overflow-auto h-[75%]">
                         {comments.map((data, i)=>(
-                            <Comment key={i} date={data[0]} commenter={data[1]} pfp={data[2]} commentTxt={data[3]}></Comment>
+                            <Comment key={i} date={data[0]} commenter={data[1]} pfp={data[2]} commentTxt={data[3]} displayname={data[4]}></Comment>
                         ))}
                     </div>
                     <div className={`${commentBox} flex justify-between w-[70%] absolute bottom-10`}>
