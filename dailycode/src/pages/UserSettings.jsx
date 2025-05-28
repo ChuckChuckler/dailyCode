@@ -7,6 +7,7 @@ let globalPfpFile;
 let unsaved = false;
 
 export default function UserSettings(){
+    const [username, setUsername] = useState("");
     const [displayName, setDisplayName] = useState("");
     const [imgDisplay, changeImgDisplay] = useState("block");
     const [pfp, setPfp] = useState(null);
@@ -27,7 +28,7 @@ export default function UserSettings(){
                     setDisplayName(response.data.displayName);
                     setPfp(response.data.pfp);
                     setBio(response.data.bio);
-                    /*setUsername(response.data.username);*/
+                    setUsername(response.data.username);
                 }
             })
             .catch((e)=>{
@@ -49,7 +50,7 @@ export default function UserSettings(){
            doublecheck("block");
            buttonDisplay("hidden");
         }else{
-            navigate("/user-profile");
+            navigate(`/profile/${username}`);
         }
     }
 

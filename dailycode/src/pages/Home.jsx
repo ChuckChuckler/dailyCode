@@ -13,6 +13,7 @@ function sleep(ms){
 }
 
 export default function Home(){
+    const [usernameFunc, setUsername] = useState("");
     const [displayname, setDisplayName] = useState("");
     const [pfp, setPfp] = useState(null);
     const [createDiv, displayCreateDiv] = useState("hidden");
@@ -44,6 +45,7 @@ export default function Home(){
                 }else{
                     setDisplayName(response.data.displayName);
                     username = response.data.username;
+                    setUsername(username);
                     setPfp(response.data.pfp);
                 }
             })
@@ -97,7 +99,7 @@ export default function Home(){
     return(
         <>
             <img src={pfp} className="w-[100px] h-[100px] rounded-full" onClick={function(){
-                navigate("/user-profile");
+                navigate(`/profile/${usernameFunc}`);
             }}></img>
             <h3>Good to see you, {displayname}!</h3>
             <br></br>

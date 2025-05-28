@@ -10,7 +10,7 @@ export default function ProjectCard({ creator, creatorPfp, name, preview, id, vo
     const [votingDisplay, displayVotingInterface] = useState("block");
     const [votesDisplay, displayOwnProject] = useState("hidden");
 
-    const navigation = useNavigate();
+    const navigate = useNavigate();
 
     useEffect(()=>{
         const setAll = () => {
@@ -43,14 +43,16 @@ export default function ProjectCard({ creator, creatorPfp, name, preview, id, vo
     
     return(
         <div className="bg-[#d4d4d4] w-[300px]">
-            <div className="bg-[#a6a6a6] flex h-[35px]">
+            <div className="bg-[#a6a6a6] flex h-[35px]" onClick={function(){
+                navigate(`/profile/${creator}`);
+            }}>
                 <img src={creatorPfp} className="w-[30px] h-[30px] rounded-full"></img>
                 <h5>{creator}</h5>
             </div>
             <div className="m-auto w-[250px]">
                 <h1>{name}</h1>
                 <img src={preview} className="w-[250px] h-[250px] object-cover object-center" onClick={function(){
-                    navigation(`/project/${id}`);
+                    navigate(`/project/${id}`);
                 }}></img>
             </div>
             <br></br>

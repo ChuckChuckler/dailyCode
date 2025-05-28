@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 
 //setup mongo
-const uri = "";
+const uri = "uri";
 const client  = new MongoClient(uri);
 client.connect();
 let dailycodeDB = client.db("dailyCodeDB");
@@ -321,7 +321,18 @@ app.post("/comment", async (req, res)=>{
 app.post("/fetchProfile", async (req, res)=>{
     let username = req.body.username;
     let finding = await usersColl.findOne({username:username});
-    console.log(finding);
+    let ids = [];
+    for(let i of finding.projects){
+        let temp = await projectsColl.findOne({name:i, creator:username});
+        ids.unshift(temp._id);
+    }
+    finding["projectIds"] = ids;
+    if(username==globalUsername){
+        finding["selfUser"] = true;
+    }else{
+        finding["selfUser"] = false;
+    }
+
     res.send(finding);
 })
 
