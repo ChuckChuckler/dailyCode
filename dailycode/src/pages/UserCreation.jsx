@@ -111,6 +111,7 @@ export default function UserCreation(){
                 formData.append("dispName", userDisplayName);
                 formData.append("pfp", globalPfpFile);
                 formData.append("bio", userBio);
+                formData.append("pronouns", "");
                 axios.post("/instantiateUser", formData, {
                     headers:{
                         "Content-Type":"multipart/form-data"

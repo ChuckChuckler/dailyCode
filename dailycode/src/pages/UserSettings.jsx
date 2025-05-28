@@ -13,6 +13,7 @@ export default function UserSettings(){
     const [pfp, setPfp] = useState(null);
     const [imgErr, writeImgError] = useState("");
     const [bio, setBio] = useState("");
+    const [pronouns, setPronouns] = useState("");
     const [checkDisplay, doublecheck] = useState("hidden");
     const [button, buttonDisplay] = useState("block");
 
@@ -29,6 +30,7 @@ export default function UserSettings(){
                     setPfp(response.data.pfp);
                     setBio(response.data.bio);
                     setUsername(response.data.username);
+                    setPronouns(response.data.pronouns);
                 }
             })
             .catch((e)=>{
@@ -50,7 +52,7 @@ export default function UserSettings(){
            doublecheck("block");
            buttonDisplay("hidden");
         }else{
-            navigate(`/profile/${username}`);
+            navigate(`/profile/${username}`); 
         }
     }
 
@@ -72,6 +74,7 @@ export default function UserSettings(){
         formData.append("dispName", newDisplayName);
         formData.append("pfp", globalPfpFile);
         formData.append("bio", newBio);
+        formData.append("prns", pronouns);
         axios.post("/instantiateUser", formData, {
             headers:{
                 "Content-Type":"multipart/form-data"
@@ -101,7 +104,7 @@ export default function UserSettings(){
             <br></br>
             <label>Pronouns</label>
             <br></br>
-            <input id="pronouns" autoComplete="off" type="text" onChange={makeUnsaved}></input>
+            <input id="pronouns" autoComplete="off" type="text" onChange={makeUnsaved} defaultValue={pronouns}></input>
             <br></br>
             <br></br>
             <label>Profile Picture</label>
@@ -144,11 +147,11 @@ export default function UserSettings(){
                 <h4>You have unsaved changes? Leave anyways?</h4>
                 <button onClick={function(){
                     save();
-                    navigate("/user-profile");
+                    navigate(`/profile/${username}`);
                 }}>Save Changes!!</button>
                 <br></br>
                 <button onClick={function(){
-                    navigate("/user-profile");
+                    navigate(`/profile/${username}`);
                 }}>Nah, leave</button>
             </div>
             <button onClick={save} className={`${button}`}>Save Changes</button>

@@ -9,8 +9,12 @@ export default function Profile(){
     const [displayName, changeDisplayName] = useState("");
     const [pfp, changePfp] = useState(null);
     const [bio, changeBio] = useState("");
+    const [pronouns, setPronouns] = useState("");
     const [projects, setProjects] = useState([]);
     const [editProfile, editProfileView] = useState("hidden");
+    const [status, setStatus] = useState("");
+    const [statusDisplay, displayStatus] = useState("block");
+    const [statusSetter, displaySetter] = useState("hidden");
 
     const navigate = useNavigate();
     const params = useParams();
@@ -28,10 +32,14 @@ export default function Profile(){
                 changeDisplayName(data.displayName);
                 changeBio(data.userBio);
                 changePfp(`data:${data.pfpMimeType};base64,${data.pfpData.toString("base64")}`);
+                setPronouns(data.pronouns);
+                setStatus(data.status);
                 projectIds = data.projectIds;
 
                 if(data.selfUser){
                     editProfileView("block");
+                    displayStatus("hidden");
+                    displaySetter("block");
                 }
             })
             .catch((e)=>{
@@ -81,9 +89,18 @@ export default function Profile(){
                     <img src={pfp} className="w-[300px] h-[300px] rounded-full"></img>
                     <br></br>
                     <h3>{user}</h3>
-                    <h6>Status: </h6>
+                    <h6 className={`${statusDisplay}`}>Status: {status}</h6>
+                    <div className={`${statusSetter}`}>
+                        <label>Status: </label>
+                        <input defaultValue={status} id="statusInput" autoComplete="off" maxLength={30} onBlur={function(){
+                            axios.post("/updateStatus", {status:document.getElementById("statusInput").value})
+                            .catch((e)=>{
+                                console.log(e);
+                            })
+                        }}></input>
+                    </div>
                     <br></br>
-                    <h3>Pronouns: </h3>
+                    <h3>Pronouns: {pronouns}</h3>
                     <br></br>
                     <h3>Bio:</h3>
                     <p>{bio}</p>

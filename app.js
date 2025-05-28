@@ -85,7 +85,8 @@ app.get("/getUserInfo", async (req, res)=>{
             displayName:globalDisplayName,
             username:globalUsername,
             pfp:globalPfp,
-            bio:userInfo.userBio
+            bio:userInfo.userBio,
+            pronouns: userInfo.pronouns
         });
     }else{
         res.send({msg:"home"})
@@ -93,7 +94,7 @@ app.get("/getUserInfo", async (req, res)=>{
 });
 
 app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
-    let { dispName, bio } = req.body;
+    let { dispName, bio, prns } = req.body;
     let pfpFile = req.file;
     try{
         if(pfpFile!=null){
@@ -104,14 +105,16 @@ app.post("/instantiateUser", upload.single("pfp"), async (req, res)=>{
                     displayName: dispName,
                     pfpData: buffer,
                     pfpMimeType: mimetype,
-                    userBio:bio
+                    userBio:bio,
+                    pronouns: prns
                 }}
             ); 
         }else{
             usersColl.updateOne({username:globalUsername},
                 {$set:{
                     displayName: dispName,
-                    userBio:bio
+                    userBio:bio,
+                    pronouns: prns
                 }}
             )
         }
@@ -316,7 +319,7 @@ app.post("/comment", async (req, res)=>{
         pfp: globalPfp,
         comments: commentsArr
     });
-})
+});
 
 app.post("/fetchProfile", async (req, res)=>{
     let username = req.body.username;
@@ -334,7 +337,17 @@ app.post("/fetchProfile", async (req, res)=>{
     }
 
     res.send(finding);
-})
+});
+
+app.post("/updateStatus", async (req, res)=>{
+    await usersColl.updateOne({username: globalUsername},{
+        $set:{
+            status: req.body.status
+        }
+    });
+
+    res.send({msg:"success"});
+});
 
 app.listen(3000, ()=>{
     console.log("successfully listening");
