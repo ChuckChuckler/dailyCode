@@ -16,6 +16,8 @@ export default function UserSettings(){
     const [pronouns, setPronouns] = useState("");
     const [checkDisplay, doublecheck] = useState("hidden");
     const [button, buttonDisplay] = useState("block");
+    const [addEmail, displayEmailDiv] = useState("hidden");
+    const [emailErr, writeEmailErr] = useState("");
 
     const navigate = useNavigate();
 
@@ -31,6 +33,12 @@ export default function UserSettings(){
                     setBio(response.data.bio);
                     setUsername(response.data.username);
                     setPronouns(response.data.pronouns);
+                    if(response.data.email){
+                        console.log("email found");
+                    }else{
+                        console.log("not found");
+                        displayEmailDiv("block");
+                    }
                 }
             })
             .catch((e)=>{
@@ -142,6 +150,39 @@ export default function UserSettings(){
             <hr></hr>
             <br></br>
             <label>Email</label>
+            <br></br>
+            <div className={`${addEmail}`}>
+                <h3>You don't have an email yet!</h3>
+                <p>Add an email to get cool updates like upvotes, comments, and more!!</p>
+                <input id="email" autoComplete="off"></input>
+                <br></br>
+                <button onClick={function(){
+                    let regx = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    let emailElm = document.getElementById("email");
+                    if(emailElm.value==""){
+                        writeEmailErr("No email provided");
+                    }else{
+                        if(regx.test(emailElm.value)){
+                            writeEmailErr(`Sending an email to ${emailElm.value}...`);
+                            axios.post("/sendEmail", {
+                                email:emailElm.value,
+                                emailSubject: "Verification"
+                                //emailBody:"Congratulations! Your email has been verified!\nThanks!"
+                            })
+                            .then((response)=>{
+                                console.log("yay");
+                            })
+                            .catch((e)=>{
+                                console.log(e);
+                            });
+                        }else{
+                            writeEmailErr("Your email isn't valid-- double check it?");
+                        }
+                    }
+                }}>Check email</button>
+                <br></br>
+                <p>{emailErr}</p>
+            </div>
             <br></br>
             <div className={`${checkDisplay}`}>
                 <h4>You have unsaved changes? Leave anyways?</h4>

@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import crypto from "crypto";
 import multer from "multer";
+import nodemailer from "nodemailer";
 
 //setup express app
 const app = express();
@@ -25,6 +26,15 @@ let projectsColl = dailycodeDB.collection("projects");
 
 //setup multer
 const upload = multer({storage: multer.memoryStorage()});
+
+//setup nodemailer
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: "your email",
+        pass: "app-specific" 
+    },
+});
 
 let globalUsername = "";
 let globalPfp;
@@ -306,7 +316,8 @@ app.post("/comment", async (req, res)=>{
     let date = new Date();
 
     let finding = await projectsColl.findOne({_id: id});
-    let commentsArr = [[date, globalUsername, globalPfp, commentTxt, globalDisplayName], ...finding.comments];
+    let commentsArr = [...finding.comments, [date, globalUsername, globalPfp, commentTxt, globalDisplayName]];
+
     await projectsColl.updateOne({_id:id}, {
         $set:{
             comments: commentsArr
@@ -347,6 +358,28 @@ app.post("/updateStatus", async (req, res)=>{
     });
 
     res.send({msg:"success"});
+});
+
+app.post("/sendEmail", async (req, res)=>{
+    let email = req.body.email;
+    let emailSubject = req.body.emailSubject;
+    //let emailBody = req.body.emailBody;
+
+    if(emailSubject == "Verification"){
+        const info = await transporter.sendMail({
+            from: '"your information',
+            to: email,
+            subject: emailSubject,
+            text: "Congratulations! Your account has been verified!",
+            html: 
+            `<h1>Hey!</h1>
+            <h3>Click here to verify your email ~☆</h3>
+            <button>Verify!</button>
+            `
+        });
+    }
+
+    res.send("success");
 });
 
 app.listen(3000, ()=>{
