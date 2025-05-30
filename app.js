@@ -31,8 +31,8 @@ const upload = multer({storage: multer.memoryStorage()});
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "your email",
-        pass: "app-specific" 
+        user: "gmail here",
+        pass: "app-specific password" 
     },
 });
 
@@ -96,7 +96,9 @@ app.get("/getUserInfo", async (req, res)=>{
             username:globalUsername,
             pfp:globalPfp,
             bio:userInfo.userBio,
-            pronouns: userInfo.pronouns
+            pronouns: userInfo.pronouns,
+            email: userInfo.email,
+            verified: userInfo.verified
         });
     }else{
         res.send({msg:"home"})
@@ -366,21 +368,38 @@ app.post("/sendEmail", async (req, res)=>{
     //let emailBody = req.body.emailBody;
 
     if(emailSubject == "Verification"){
-        const info = await transporter.sendMail({
-            from: '"your information',
+        await usersColl.updateOne({username: globalUsername},{
+            $set:{
+                email: email,
+                verified: false
+            }
+        });
+
+        await transporter.sendMail({
+            from: '"your name", your email address',
             to: email,
             subject: emailSubject,
             text: "Congratulations! Your account has been verified!",
             html: 
             `<h1>Hey!</h1>
             <h3>Click here to verify your email ~☆</h3>
-            <button>Verify!</button>
+            <a href="http://localhost:5173/verification/${globalUsername}">Verify!</a>
             `
         });
     }
 
     res.send("success");
 });
+
+app.post("/verify", async (req, res)=>{
+    let userToVerify = req.body.user;
+    await usersColl.updateOne({username: userToVerify},{
+        $set:{
+            verified: true
+        }
+    });
+    res.send("success");
+})
 
 app.listen(3000, ()=>{
     console.log("successfully listening");

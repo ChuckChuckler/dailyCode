@@ -6,6 +6,10 @@ import { useNavigate } from "react-router";
 let globalPfpFile;
 let unsaved = false;
 
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export default function UserSettings(){
     const [username, setUsername] = useState("");
     const [displayName, setDisplayName] = useState("");
@@ -16,8 +20,12 @@ export default function UserSettings(){
     const [pronouns, setPronouns] = useState("");
     const [checkDisplay, doublecheck] = useState("hidden");
     const [button, buttonDisplay] = useState("block");
-    const [addEmail, displayEmailDiv] = useState("hidden");
+    const [emailDiv, displayEmailDiv] = useState("hidden");
     const [emailErr, writeEmailErr] = useState("");
+    const [emailDisplay, displayEmail] = useState("block");
+    const [email, setEmail] = useState("");
+    const [verified, isVerified] = useState("hidden");
+    const [changeEmail, displayEmailChange] = useState("block");
 
     const navigate = useNavigate();
 
@@ -34,10 +42,13 @@ export default function UserSettings(){
                     setUsername(response.data.username);
                     setPronouns(response.data.pronouns);
                     if(response.data.email){
-                        console.log("email found");
+                        setEmail(response.data.email);
+                        if(!response.data.verified){
+                            isVerified("block");
+                        }
                     }else{
-                        console.log("not found");
                         displayEmailDiv("block");
+                        displayEmail("hidden");
                     }
                 }
             })
@@ -151,9 +162,8 @@ export default function UserSettings(){
             <br></br>
             <label>Email</label>
             <br></br>
-            <div className={`${addEmail}`}>
-                <h3>You don't have an email yet!</h3>
-                <p>Add an email to get cool updates like upvotes, comments, and more!!</p>
+            <div className={`${emailDiv}`}>
+                <h3>Add an email to get cool updates like upvotes, comments, and more!!</h3>
                 <input id="email" autoComplete="off"></input>
                 <br></br>
                 <button onClick={function(){
@@ -171,6 +181,9 @@ export default function UserSettings(){
                             })
                             .then((response)=>{
                                 console.log("yay");
+                                sleep(2000).then(()=>{
+                                    window.location.reload();
+                                });
                             })
                             .catch((e)=>{
                                 console.log(e);
@@ -181,8 +194,33 @@ export default function UserSettings(){
                     }
                 }}>Check email</button>
                 <br></br>
-                <p>{emailErr}</p>
             </div>
+            <h3 className={`${emailDisplay}`}>{email}</h3>
+            <br></br>
+            <div className={`${verified}`}>
+                <p>You haven't verified this email yet! Check your inbox, or your spam if you can't find it.</p>
+                <br></br>
+                <button onClick={function(){
+                    axios.post("/sendEmail", {
+                        email:email,
+                        emailSubject: "Verification"
+                        //emailBody:"Congratulations! Your email has been verified!\nThanks!"
+                    })
+                    .then((response)=>{
+                        console.log("yay");
+                    })
+                    .catch((e)=>{
+                        console.log(e);
+                    });
+                }}>Resend verification email</button>
+            </div>
+            <button className={`${changeEmail}`} onClick={function(){
+                isVerified("hidden");
+                displayEmail("hidden");
+                displayEmailDiv("block");
+                displayEmailChange("hidden");
+            }}>Change email</button>
+            <p>{emailErr}</p>
             <br></br>
             <div className={`${checkDisplay}`}>
                 <h4>You have unsaved changes? Leave anyways?</h4>
