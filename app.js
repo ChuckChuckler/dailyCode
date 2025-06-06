@@ -31,8 +31,8 @@ const upload = multer({storage: multer.memoryStorage()});
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "gmail here",
-        pass: "app-specific password" 
+        user: "your gmail here",
+        pass: "app-specific password here" 
     },
 });
 
@@ -175,7 +175,7 @@ app.post("/createProject", upload.single("preview"), async (req,res)=>{
     }catch(e){
         res.send(e);
     }
-})
+});
 
 app.post("/populate", async (req, res)=>{
     let dateToday = new Date().toLocaleDateString();
@@ -213,7 +213,7 @@ app.post("/updateVotes", async (req, res)=>{
 
     let temp = await projectsColl.findOne({_id:prjctId});
     let crrntVotes = temp.votes.votes;
-
+    
     if(temp.votes.voters.includes(globalUsername)){
         if(temp.votes.voteStati[temp.votes.voters.indexOf(globalUsername)] == voteStatus){
             if(voteStatus == "upvote"){
@@ -227,12 +227,24 @@ app.post("/updateVotes", async (req, res)=>{
             let tempVotersArr = temp.votes.voters.filter(i => i != globalUsername);
             let tempStatusArr = temp.votes.voteStati.filter((_, i) => i != temp.votes.voters.indexOf(globalUsername));
 
+            let highest;
+            if(temp.highest){
+                highest=temp.highest;
+            }else{
+                highest=0;
+            }
+
+            if(crrntVotes > highest){
+                highest=crrntVotes;
+            }
+            
             projectsColl.updateOne({_id: prjctId},
                 {$set:{
                     votes:{
                         votes: crrntVotes,
                         voters: tempVotersArr,
-                        voteStati: tempStatusArr
+                        voteStati: tempStatusArr,
+                        highest: highest
                     }
                 }}
             );
@@ -248,12 +260,24 @@ app.post("/updateVotes", async (req, res)=>{
             let tempVotesArr = temp.votes.voteStati;
             tempVotesArr[temp.votes.voters.indexOf(globalUsername)] = voteStatus;
 
+            let highest;
+            if(temp.highest){
+                highest=temp.highest;
+            }else{
+                highest=0;
+            }
+
+            if(crrntVotes > highest){
+                highest=crrntVotes;
+            }
+
             projectsColl.updateOne({_id: prjctId},
                 {$set:{
                     votes:{
                         votes: crrntVotes,
                         voters: temp.votes.voters,
-                        voteStati: tempVotesArr 
+                        voteStati: tempVotesArr,
+                        highest: highest
                     }
                 }}
             );
@@ -267,13 +291,25 @@ app.post("/updateVotes", async (req, res)=>{
 
         color="[#979899]";
 
+        let highest;
+        if(temp.highest){
+            highest=temp.highest;
+        }else{
+            highest=0;
+        }
+
+        if(crrntVotes > highest){
+            highest=crrntVotes;
+        }
+
         projectsColl.updateOne({_id: prjctId},
             {$set:{
                 votes:{
                     votes: crrntVotes,
                     voters: [...temp.votes.voters, globalUsername],
-                    voteStati: [...temp.votes.voteStati, voteStatus]
-                }
+                    voteStati: [...temp.votes.voteStati, voteStatus],
+                },
+                highest: highest
             }}
         );
     }
@@ -326,6 +362,21 @@ app.post("/comment", async (req, res)=>{
         }
     });
 
+    let creator = await usersColl.findOne({username: finding.creator});
+    if(creator.email && creator.verified){
+        await transporter.sendMail({
+            from: '"DailyCode", your email here',
+            to: creator.email,
+            subject: "New Comment!",
+            text: `Comment from ${globalDisplayName}: ${commentTxt}`,
+            html: 
+            `<h1>You have a new comment on ${finding.name}!</h1>
+            <h3>${globalDisplayName} says:</h3>
+            <p>${commentTxt}</p>
+            `
+        });
+    }
+
     res.send({
         date: date,
         username: globalUsername,
@@ -376,7 +427,7 @@ app.post("/sendEmail", async (req, res)=>{
         });
 
         await transporter.sendMail({
-            from: '"your name", your email address',
+            from: '"DailyCode", your email here',
             to: email,
             subject: emailSubject,
             text: "Congratulations! Your account has been verified!",
