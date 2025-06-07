@@ -31,8 +31,8 @@ const upload = multer({storage: multer.memoryStorage()});
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "your gmail here",
-        pass: "app-specific password here" 
+        user: "your email here",
+        pass: "app specific password" 
     },
 });
 
@@ -233,9 +233,14 @@ app.post("/updateVotes", async (req, res)=>{
             }else{
                 highest=0;
             }
+            
+            let creator = await usersColl.findOne({username: temp.creator});
 
             if(crrntVotes > highest){
                 highest=crrntVotes;
+                if(creator.email && creator.verified){
+                    emailMilestone(highest, temp.name, creator.email, creator.displayName);
+                }
             }
             
             projectsColl.updateOne({_id: prjctId},
@@ -244,8 +249,8 @@ app.post("/updateVotes", async (req, res)=>{
                         votes: crrntVotes,
                         voters: tempVotersArr,
                         voteStati: tempStatusArr,
-                        highest: highest
-                    }
+                    },
+                    highest: highest
                 }}
             );
         }else{
@@ -267,8 +272,13 @@ app.post("/updateVotes", async (req, res)=>{
                 highest=0;
             }
 
+            let creator = await usersColl.findOne({username: temp.creator});
+
             if(crrntVotes > highest){
                 highest=crrntVotes;
+                if(creator.email && creator.verified){
+                    emailMilestone(highest, temp.name, creator.email, creator.displayName);
+                }
             }
 
             projectsColl.updateOne({_id: prjctId},
@@ -277,8 +287,8 @@ app.post("/updateVotes", async (req, res)=>{
                         votes: crrntVotes,
                         voters: temp.votes.voters,
                         voteStati: tempVotesArr,
-                        highest: highest
-                    }
+                    },
+                    highest: highest
                 }}
             );
         }
@@ -298,8 +308,13 @@ app.post("/updateVotes", async (req, res)=>{
             highest=0;
         }
 
+        let creator = await usersColl.findOne({username: temp.creator});
+
         if(crrntVotes > highest){
             highest=crrntVotes;
+            if(creator.email && creator.verified){
+                emailMilestone(highest, temp.name, creator.email, creator.displayName);
+            }
         }
 
         projectsColl.updateOne({_id: prjctId},
@@ -316,6 +331,39 @@ app.post("/updateVotes", async (req, res)=>{
 
     res.send({newVotes: crrntVotes, color:color});
 });
+
+function emailMilestone(highest, prjctName, emailAddress, creator){
+    let subject;
+    let txt;
+    let email = false;
+
+    if(highest==1){
+        subject="First upvote!";
+        txt=`Your project ${prjctName} just received its first upvote!`;
+        email=true;
+    }else{
+        if(
+            highest==10 || highest==25 || highest==50 || highest==100 || highest==250 || highest == 500 || highest==1000 || highest == 2500
+        ){
+            subject=`${highest} votes!`;
+            txt=`Your project ${prjctName} just hit ${highest} upvotes!`;
+            email=true;
+        }
+    }
+
+    if(email){
+        transporter.sendMail({
+            from: '"DailyCode", your email here',
+            to: emailAddress,
+            subject: subject,
+            text: txt,
+            html: 
+            `<h1>Hi, ${creator}!</h1>
+            <h2>${txt}</h2>
+            `
+        });
+    }
+}
 
 app.post("/fetchProject", async (req, res)=>{
     let id=ObjectId.createFromHexString(req.body.id);
@@ -364,7 +412,7 @@ app.post("/comment", async (req, res)=>{
 
     let creator = await usersColl.findOne({username: finding.creator});
     if(creator.email && creator.verified){
-        await transporter.sendMail({
+        transporter.sendMail({
             from: '"DailyCode", your email here',
             to: creator.email,
             subject: "New Comment!",
@@ -426,7 +474,7 @@ app.post("/sendEmail", async (req, res)=>{
             }
         });
 
-        await transporter.sendMail({
+        transporter.sendMail({
             from: '"DailyCode", your email here',
             to: email,
             subject: emailSubject,
