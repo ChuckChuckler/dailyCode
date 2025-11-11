@@ -114,6 +114,7 @@ export default function Home(){
             </div>
             <div className={`${outerCreateDiv}`}>
                 <h2>You haven't made a project yet!</h2>
+                <br></br>
                 <button onClick={function(){
                     displayCreateDiv("block");
                     displayCreateBtn("hidden");

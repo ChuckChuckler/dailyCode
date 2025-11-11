@@ -19,13 +19,11 @@ export default function Spawn(){
     <>
       <h1>DailyCode</h1>
       <br></br>
-      <h3>ooooh oooh ooh ahh ahh cool brand text here im a monkey look!!!</h3>
-      <br></br>
       <button className={`${buttonToHide}`} onClick={function(){
         changeSignupDisplay("block");
         changeButtonDisplay("block");
         hideButton("hidden");
-      }}>sign up/log in uhhh wtvr</button>
+      }}>sign up/log in</button>
       <br></br>
       <br></br>
       <SignUp displayState={signupDisplay}></SignUp>
@@ -66,9 +64,11 @@ function SignUp({displayState}){
       <h3>Sign Up</h3>
       <br></br>
       <label>Username</label>
+      <br></br>
       <input type='text' name='userSignup' id='userSignup' autoComplete='off'></input>
       <br></br>
       <label>Password</label>
+      <br></br>
       <input type='text' name='passSignup' id='passSignup' autoComplete='off'></input>
       <br></br>
       <h5 id="errorMsg">{errorMsg}</h5>
@@ -124,9 +124,11 @@ function LogIn({displayState}){
       <h3>Log In</h3>
       <br></br>
       <label>Username</label>
+      <br></br>
       <input name='userLogin' id='userLogin' autoComplete='off'></input>
       <br></br>
       <label>Password</label>
+      <br></br>
       <input name='passLogin' id='passLogin' autoComplete='off'></input>
       <br></br>
       <h5 id="errorMsg">{errorMsg}</h5>

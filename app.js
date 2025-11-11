@@ -31,8 +31,8 @@ const upload = multer({storage: multer.memoryStorage()});
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "your email here",
-        pass: "app specific password" 
+        user: "gmail here",
+        pass: "app specific password here" 
     },
 });
 
